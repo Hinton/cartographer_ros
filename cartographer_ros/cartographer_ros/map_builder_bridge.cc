@@ -156,4 +156,9 @@ SensorBridge* MapBuilderBridge::sensor_bridge(const int trajectory_id) {
   return sensor_bridges_.at(trajectory_id).get();
 }
 
+std::vector<cartographer::mapping::TrajectoryNode> MapBuilderBridge::GetTrajectoryNode() {
+  return map_builder_.sparse_pose_graph()->GetTrajectoryNodes();
+}
+
+
 }  // namespace cartographer_ros

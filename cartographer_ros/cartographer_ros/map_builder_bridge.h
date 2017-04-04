@@ -60,6 +60,8 @@ class MapBuilderBridge {
 
   SensorBridge* sensor_bridge(int trajectory_id);
 
+  std::vector<cartographer::mapping::TrajectoryNode> GetTrajectoryNode();
+
  private:
   const NodeOptions options_;
 

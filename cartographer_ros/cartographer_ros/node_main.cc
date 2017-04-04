@@ -25,6 +25,7 @@
 #include "cartographer_ros/ros_log_sink.h"
 #include "gflags/gflags.h"
 #include "tf2_ros/transform_listener.h"
+#include "tf/transform_listener.h"
 
 DEFINE_string(configuration_directory, "",
               "First directory in which configuration files are searched, "
@@ -150,12 +151,43 @@ void Run() {
               ::cartographer_ros_msgs::FinishTrajectory::Request&,
               ::cartographer_ros_msgs::FinishTrajectory::Response&)>(
               [&](::cartographer_ros_msgs::FinishTrajectory::Request& request,
-                  ::cartographer_ros_msgs::FinishTrajectory::Response&) {
+                  ::cartographer_ros_msgs::FinishTrajectory::Response& response) {
                 const int previous_trajectory_id = trajectory_id;
-                trajectory_id = node.map_builder_bridge()->AddTrajectory(
+                  trajectory_id = node.map_builder_bridge()->AddTrajectory(
                     expected_sensor_ids, options.tracking_frame);
                 node.map_builder_bridge()->FinishTrajectory(
                     previous_trajectory_id);
+
+                nav_msgs::Path trajectory;
+
+                std::vector<geometry_msgs::PoseStamped> poses;
+
+                const auto trajectoryNode = node.map_builder_bridge()->GetTrajectoryNode();
+
+                for (auto node : trajectoryNode) {
+
+                  geometry_msgs::PoseStamped poseStamped;
+                  poseStamped.header.stamp = ToRos(node.time());
+                  poseStamped.header.frame_id = "map";
+                  poseStamped.pose.position.x = node.pose.translation().x();
+                  poseStamped.pose.position.y = node.pose.translation().y();
+
+                  tf::Quaternion orientation;
+                  poseStamped.pose.orientation.x = node.pose.rotation().x();
+                  poseStamped.pose.orientation.y = node.pose.rotation().y();
+                  poseStamped.pose.orientation.z = node.pose.rotation().z();
+                  poseStamped.pose.orientation.w = node.pose.rotation().w();
+
+                  poses.push_back(poseStamped);
+                }
+
+                trajectory.poses = poses;
+                trajectory.header.stamp = ros::Time::now();
+                trajectory.header.frame_id = "map";
+
+                response.trajectory = trajectory;
+                response.map = *node.map_builder_bridge()->BuildOccupancyGrid();
+
                 node.map_builder_bridge()->WriteAssets(request.stem);
                 return true;
               }));

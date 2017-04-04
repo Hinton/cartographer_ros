@@ -14,3 +14,5 @@
 
 string stem
 ---
+nav_msgs/Path trajectory
+nav_msgs/OccupancyGrid map
