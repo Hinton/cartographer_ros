@@ -84,9 +84,12 @@ void Node::Initialize() {
   wall_timers_.push_back(node_handle_.createWallTimer(
       ::ros::WallDuration(options_.submap_publish_period_sec),
       &Node::PublishSubmapList, this));
-  wall_timers_.push_back(node_handle_.createWallTimer(
-      ::ros::WallDuration(options_.pose_publish_period_sec),
-      &Node::PublishTrajectoryStates, this));
+
+  if (options_.publish_tf) {
+    wall_timers_.push_back(node_handle_.createWallTimer(
+        ::ros::WallDuration(options_.pose_publish_period_sec),
+        &Node::PublishTrajectoryStates, this));
+  }
 }
 
 ::ros::NodeHandle* Node::node_handle() { return &node_handle_; }

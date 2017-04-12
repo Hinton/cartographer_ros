@@ -37,6 +37,7 @@ struct NodeOptions {
   bool use_odometry;
   bool use_laser_scan;
   bool use_multi_echo_laser_scan;
+  bool publish_tf;
   int num_point_clouds;
   double lookup_transform_timeout_sec;
   double submap_publish_period_sec;
