@@ -84,12 +84,9 @@ void Node::Initialize() {
   wall_timers_.push_back(node_handle_.createWallTimer(
       ::ros::WallDuration(options_.submap_publish_period_sec),
       &Node::PublishSubmapList, this));
-
-  if (options_.publish_tf) {
-    wall_timers_.push_back(node_handle_.createWallTimer(
-        ::ros::WallDuration(options_.pose_publish_period_sec),
-        &Node::PublishTrajectoryStates, this));
-  }
+  wall_timers_.push_back(node_handle_.createWallTimer(
+      ::ros::WallDuration(options_.pose_publish_period_sec),
+      &Node::PublishTrajectoryStates, this));
 }
 
 ::ros::NodeHandle* Node::node_handle() { return &node_handle_; }
@@ -155,13 +152,18 @@ void Node::PublishTrajectoryStates(const ::ros::WallTimerEvent& timer_event) {
             tracking_to_local * (*trajectory_state.published_to_tracking));
         stamped_transforms.push_back(stamped_transform);
 
-        tf_broadcaster_.sendTransform(stamped_transforms);
+        if (options_.publish_tf) {
+          tf_broadcaster_.sendTransform(stamped_transforms);
+        }
       } else {
         stamped_transform.header.frame_id = options_.map_frame;
         stamped_transform.child_frame_id = options_.published_frame;
         stamped_transform.transform = ToGeometryMsgTransform(
             tracking_to_map * (*trajectory_state.published_to_tracking));
-        tf_broadcaster_.sendTransform(stamped_transform);
+        
+        if (options_.publish_tf) {
+          tf_broadcaster_.sendTransform(stamped_transform);
+        }
       }
     }
   }
